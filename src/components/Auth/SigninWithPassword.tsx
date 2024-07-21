@@ -1,14 +1,28 @@
 "use client";
 import React, { useState } from "react";
 import Link from "next/link";
+import { setCookie } from "cookies-next";
+import { useRouter } from "next/navigation";
 
 export default function SigninWithPassword() {
   const [data, setData] = useState({
     remember: false,
   });
 
+  const router=useRouter()
+
+  const handleSubmit = (e:any) => {
+    e.preventDefault();
+    // Handle form submission, e.g., send the form data to an API
+    // console.log({ email, password, remember });
+   setCookie("logIn","Login");
+   setTimeout(() => {
+    router.push('/')
+   }, 1000);
+  };
+
   return (
-    <form>
+    <form onSubmit={handleSubmit}>
       <div className="mb-4">
         <label
           htmlFor="email"
