@@ -3,6 +3,10 @@
 import "flatpickr/dist/flatpickr.min.css";
 import "@/css/satoshi.css";
 import "@/css/style.css";
+// pages/_app.js
+import 'antd/dist/reset.css'; // Import Ant Design styles by using reset.css
+import { ConfigProvider } from 'antd'; // Import ConfigProvider for custom theming
+
 import React, { useEffect, useState } from "react";
 import Loader from "@/components/common/Loader";
 import { useRouter } from "next/navigation";
@@ -37,7 +41,10 @@ export default function RootLayout({
     <html lang="en">
       <body suppressHydrationWarning={true}>
         {/* <Loader /> */}
-        {isLogin && isLogin!== 'undefined' ? <DefaultLayout>{children}</DefaultLayout>: children}
+        {/* {isLogin && isLogin!== 'undefined' ? <DefaultLayout>{children}</DefaultLayout>: children} */}
+        <ConfigProvider>
+        <DefaultLayout>{children}</DefaultLayout>
+        </ConfigProvider>
       </body>
     </html>
   );

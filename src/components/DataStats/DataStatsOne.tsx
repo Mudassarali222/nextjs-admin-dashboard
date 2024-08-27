@@ -24,8 +24,8 @@ const dataStatsList = [
       </svg>
     ),
     color: "#3FD97F",
-    title: "Total Views",
-    value: "3.456K",
+    title: "Income",
+    value: "1$",
     growthRate: 0.43,
   },
   {
@@ -46,8 +46,8 @@ const dataStatsList = [
       </svg>
     ),
     color: "#FF9C55",
-    title: "Total Profit",
-    value: "$42.2K",
+    title: "Expense",
+    value: "2$",
     growthRate: 4.35,
   },
   {
@@ -74,8 +74,8 @@ const dataStatsList = [
       </svg>
     ),
     color: "#8155FF",
-    title: "Total Product",
-    value: "2.450",
+    title: "Egg Collection",
+    value: "0",
     growthRate: 2.59,
   },
   {
@@ -112,8 +112,46 @@ const dataStatsList = [
       </svg>
     ),
     color: "#18BFFF",
-    title: "Total Users",
-    value: "3.465",
+    title: "Feeding",
+    value: "0 kg",
+    growthRate: -0.95,
+  },
+  {
+    icon: (
+      <svg
+        width="26"
+        height="26"
+        viewBox="0 0 26 26"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <ellipse
+          cx="9.75106"
+          cy="6.49984"
+          rx="4.33333"
+          ry="4.33333"
+          fill="white"
+        />
+        <ellipse
+          cx="9.75106"
+          cy="18.4178"
+          rx="7.58333"
+          ry="4.33333"
+          fill="white"
+        />
+        <path
+          d="M22.7496 18.4173C22.7496 20.2123 20.5445 21.6673 17.8521 21.6673C18.6453 20.8003 19.1907 19.712 19.1907 18.4189C19.1907 17.1242 18.644 16.0349 17.8493 15.1674C20.5417 15.1674 22.7496 16.6224 22.7496 18.4173Z"
+          fill="white"
+        />
+        <path
+          d="M19.4996 6.50098C19.4996 8.2959 18.0446 9.75098 16.2496 9.75098C15.8582 9.75098 15.483 9.68179 15.1355 9.55498C15.648 8.65355 15.9407 7.61084 15.9407 6.49977C15.9407 5.38952 15.6484 4.34753 15.1366 3.44656C15.4838 3.32001 15.8587 3.25098 16.2496 3.25098C18.0446 3.25098 19.4996 4.70605 19.4996 6.50098Z"
+          fill="white"
+        />
+      </svg>
+    ),
+    color: "#18BFFF",
+    title: "Treatments",
+    value: "0",
     growthRate: -0.95,
   },
 ];
@@ -121,7 +159,26 @@ const dataStatsList = [
 const DataStatsOne: React.FC<dataStats> = () => {
   return (
     <>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-4 2xl:gap-7.5">
+      <div className="flex justify-end pb-3">
+        <div className="relative inline-block w-64">
+          <select className="block appearance-none w-full bg-white border border-gray-400 hover:border-gray-500 px-4 py-2 pr-8 rounded shadow leading-tight focus:outline-none focus:shadow-outline">
+            <option>Today</option>
+            <option>Yesterday</option>
+            <option>This Month</option>
+            <option>Last Month</option>
+            <option>Last 3 Months</option>
+            <option>Last 6 Months</option>
+            <option>This Year</option>
+            <option>Last Year</option>
+            <option>All Time</option>
+          </select>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+            <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M10 12l-5-5h10l-5 5z" /></svg>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-2 md:grid-cols-2 md:gap-6 xl:grid-cols-5 2xl:gap-7.5">
         {dataStatsList.map((item, index) => (
           <div
             key={index}
@@ -141,8 +198,7 @@ const DataStatsOne: React.FC<dataStats> = () => {
                 </h4>
                 <span className="text-body-sm font-medium">{item.title}</span>
               </div>
-
-              <span
+              {/* <span
                 className={`flex items-center gap-1.5 text-body-sm font-medium ${
                   item.growthRate > 0 ? "text-green" : "text-red"
                 }`}
@@ -177,7 +233,7 @@ const DataStatsOne: React.FC<dataStats> = () => {
                     />
                   </svg>
                 )}
-              </span>
+              </span> */}
             </div>
           </div>
         ))}
