@@ -1,9 +1,11 @@
 "use client"
+import { addflock, getFlock } from "@/axios/services/flock";
+import { getAllUser } from "@/axios/services/user";
 import { flockOptions } from "@/utils/constant";
 import { DeleteOutlined, DownOutlined, EditOutlined, EllipsisOutlined, InboxOutlined, MoreOutlined } from "@ant-design/icons";
 import { Button, DatePicker, Dropdown, Form, Input, MenuProps, message, Modal, Select, Space, Table, Upload } from "antd";
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 const { Option } = Select;
 const { TextArea } = Input;
 
@@ -15,24 +17,47 @@ const Flock = () => {
     const submitRef = useRef<any>();
     const [isEdit, setIsEdit] = useState<boolean>(false);
     const [modalTitle, setModalTitle] = useState<string>('Add Flock');
-    const handleMenuClick = (e: any) => {
+
+    const [flocks, setflocks] = useState<any>();
+
+    async function getAllFlocks() {
+        const user: any = await getFlock().then((res) => { console.log('Line 24:', res); setflocks(res?.data) });
+    }
+
+    async function addFlock(payload: any) {
+        const user: any = await addflock(payload).then((res) => {
+            if (res?.status === 201) {
+                setisModalOpen(false)
+                const { data } = res
+                setflocks([data, ...flocks])
+            }
+        });
+    }
+
+
+    useEffect(() => {
+        getAllFlocks();
+    }, []);
+
+    const handleMenuClick = (e: any,record:any) => {
+        console.log('Line 43:', e,record);
         // message.info(`Clicked on item with key ${e.key}`);
         // You can use e.key to determine which item was clicked
         switch (e.key) {
             case '0':
-                router.push(`flock/details/1?type=${flockOptions[0].value}`)
+                router.push(`flock/details/${record?._id}?type=${flockOptions[0].value}`)
                 break;
             case '1':
-                router.push(`flock/details/1?type=${flockOptions[1].value}`)
+                router.push(`flock/details/${record?._id}?type=${flockOptions[1].value}`)
                 break;
             case '2':
-                router.push(`flock/details/1?type=${flockOptions[2].value}`)
+                router.push(`flock/details/${record?._id}?type=${flockOptions[2].value}`)
                 break;
             case '3':
-                router.push(`flock/details/1?type=${flockOptions[3].value}`)
+                router.push(`flock/details/${record?._id}?type=${flockOptions[3].value}`)
                 break;
             case '4':
-                router.push(`flock/details/1?type=${flockOptions[4].value}`)
+                router.push(`flock/details/${record?._id}?type=${flockOptions[4].value}`)
                 break;
             // case '5':
             //     setModalTitle('Edit Flock')
@@ -80,17 +105,17 @@ const Flock = () => {
     const columns = [
         {
             title: 'Flock Name',
-            dataIndex: 'f_Name',
+            dataIndex: 'f_name',
             key: 'Flock Name',
         },
         {
             title: 'Type',
-            dataIndex: 'icon',
+            dataIndex: 'bird_type',
             key: 'Type',
         },
         {
             title: 'Birds Count',
-            dataIndex: 'active_bird_count',
+            dataIndex: 'bird_count',
             key: 'Birds Count',
         },
         {
@@ -100,12 +125,12 @@ const Flock = () => {
         },
         {
             title: 'Acqusition',
-            dataIndex: 'acqusition',
+            dataIndex: 'acquisition_type',
             key: 'Acqusition',
         },
         {
             title: 'Created Date',
-            dataIndex: 'date',
+            dataIndex: 'acquisition_date',
             key: 'Created Date',
         },
         {
@@ -126,111 +151,19 @@ const Flock = () => {
                         <DeleteOutlined className="text-red-500" onClick={() => { }} />
                         <Dropdown menu={{
                             items,
-                            onClick: handleMenuClick,
-                        }} trigger={['click']}>
-                            <a onClick={(e) => e.preventDefault()}>
-                                <Space className="flex justify-center">
-                                    <EllipsisOutlined className="border-solid border-2 p-1 rounded-md" />
-                                </Space>
-                            </a>
+                            onClick: (e)=> handleMenuClick(e,record),
+                        }} trigger={['click']}
+                            className="cursor-pointer"
+                            placement="bottom" arrow>
+                            <Space className="flex justify-center">
+                                <EllipsisOutlined className="border-solid border-2 p-1 rounded-md" />
+                            </Space>
                         </Dropdown>
                     </Space>
                 </>
             }
         },
 
-    ];
-    const dataSource = [
-        {
-            key: '1',
-            f_Name: 'Flock A',
-            icon: 'Chicken',
-            active_bird_count: 150,
-            purpose: 'Egg Production',
-            acqusition: 'Purchased',
-            date: '2024-08-17',
-        },
-        {
-            key: '2',
-            f_Name: 'Flock B',
-            icon: 'Duck',
-            active_bird_count: 200,
-            purpose: 'Meat Production',
-            acqusition: 'Bred',
-            date: '2024-08-10',
-        },
-        {
-            key: '3',
-            f_Name: 'Flock C',
-            icon: 'Turkey',
-            active_bird_count: 80,
-            purpose: 'Breeding',
-            acqusition: 'Purchased',
-            date: '2024-08-05',
-        },
-        {
-            key: '4',
-            f_Name: 'Flock D',
-            icon: 'Quail',
-            active_bird_count: 300,
-            purpose: 'Egg Production',
-            acqusition: 'Bred',
-            date: '2024-07-28',
-        },
-        {
-            key: '5',
-            f_Name: 'Flock E',
-            icon: 'Goose',
-            active_bird_count: 120,
-            purpose: 'Feather Production',
-            acqusition: 'Purchased',
-            date: '2024-07-20',
-        },
-        {
-            key: '6',
-            f_Name: 'Flock F',
-            icon: 'Chicken',
-            active_bird_count: 250,
-            purpose: 'Meat Production',
-            acqusition: 'Bred',
-            date: '2024-07-15',
-        },
-        {
-            key: '7',
-            f_Name: 'Flock G',
-            icon: 'Duck',
-            active_bird_count: 180,
-            purpose: 'Egg Production',
-            acqusition: 'Purchased',
-            date: '2024-07-10',
-        },
-        {
-            key: '8',
-            f_Name: 'Flock H',
-            icon: 'Turkey',
-            active_bird_count: 90,
-            purpose: 'Breeding',
-            acqusition: 'Bred',
-            date: '2024-07-05',
-        },
-        {
-            key: '9',
-            f_Name: 'Flock I',
-            icon: 'Quail',
-            active_bird_count: 220,
-            purpose: 'Meat Production',
-            acqusition: 'Purchased',
-            date: '2024-06-30',
-        },
-        {
-            key: '10',
-            f_Name: 'Flock J',
-            icon: 'Goose',
-            active_bird_count: 100,
-            purpose: 'Feather Production',
-            acqusition: 'Bred',
-            date: '2024-06-25',
-        },
     ];
 
     function normFile(e: any) {
@@ -242,12 +175,12 @@ const Flock = () => {
 
     const onFinish = (values: any) => {
         console.log('Form Values:', values);
+        addFlock(values)
     };
 
     return <>
         <Space className="flex justify-end mb-3"><Button type="primary" onClick={() => { setisModalOpen(true); setIsEdit(false) }}>Add Flock</Button></Space>
-        <Table dataSource={dataSource} columns={columns} />;
-
+        {flocks && <Table dataSource={flocks} columns={columns} />}
         <Modal
             open={isModalOpen}
             title={modalTitle}
@@ -279,14 +212,14 @@ const Flock = () => {
                 >
 
                     <Form.Item
-                        name="flockName"
+                        name="f_name"
                         label="Flock/Batch Name"
                         rules={[{ required: true, message: 'Please enter the flock or batch name!' }]}
                     >
                         <Input placeholder="Enter flock or batch name" />
                     </Form.Item>
                     <Form.Item
-                        name="birdType"
+                        name="bird_type"
                         label="Bird Type"
                         rules={[{ required: true, message: 'Please select a bird type!' }]}
                     >
@@ -311,7 +244,7 @@ const Flock = () => {
                     </Form.Item>
 
                     <Form.Item
-                        name="numberOfBirds"
+                        name="bird_count"
                         label="Number of Birds"
                         rules={[{ required: true, message: 'Please enter the number of birds!' }]}
                     >
@@ -332,7 +265,7 @@ const Flock = () => {
                     </Form.Item>
 
                     <Form.Item
-                        name="acqusition"
+                        name="acquisition_type"
                         label="Acquisition"
                         rules={[{ required: true, message: 'Please select the acquisition method!' }]}
                     >
@@ -345,7 +278,7 @@ const Flock = () => {
                     </Form.Item>
 
                     <Form.Item
-                        name="date"
+                        name="acquisition_date"
                         label="Date"
                         rules={[{ required: true, message: 'Please select the date!' }]}
                     >
@@ -353,7 +286,7 @@ const Flock = () => {
                     </Form.Item>
 
                     <Form.Item
-                        name="image"
+                        name="icon"
                         label="Flock Image"
                         valuePropName="fileList"
                         getValueFromEvent={normFile}
@@ -367,7 +300,7 @@ const Flock = () => {
                     </Form.Item>
 
                     <Form.Item
-                        name="flockDescription"
+                        name="notes"
                         label="Flock Description"
                     >
                         <TextArea rows={4} placeholder="Enter a description for the flock" disabled={isEdit} />
@@ -379,7 +312,6 @@ const Flock = () => {
                         </Button>
                     </Form.Item>
                 </Form>
-
             </div>
         </Modal>
     </>

@@ -1,6 +1,9 @@
+"use client"
 import Link from "next/link";
 import Image from "next/image";
 import { Chat } from "@/types/chat";
+import { use, useEffect, useState } from "react";
+import { getAllUser } from "@/axios/services/user";
 
 const chatData: Chat[] = [
   {
@@ -52,11 +55,38 @@ const chatData: Chat[] = [
 ];
 
 const ChatCard = () => {
+
+  const [users, setusers] = useState<any>();
+
+  async function getuser() {
+    const user: any = await getAllUser().then((res) => { console.log('Line 62:', res); setusers(res) });
+  }
+
+
+  useEffect(() => {
+    getuser();
+  }, []);
+
+
+
   return (
     <div className="col-span-12 rounded-[10px] bg-white py-6 shadow-1 dark:bg-gray-dark dark:shadow-card xl:col-span-4">
       <h4 className="mb-5.5 px-7.5 text-body-2xlg font-bold text-dark dark:text-white">
         Chats
       </h4>
+
+      <h1>All User</h1>
+
+      {users && users.map((item: any, index: any) => {
+        return <>
+          <h3>
+            {item?.email}
+          </h3>
+          <h4>
+            {item?.password}
+          </h4>
+        </>
+      })}
 
       <div>
         {chatData.map((chat, key) => (
@@ -77,13 +107,12 @@ const ChatCard = () => {
                 }}
               />
               <span
-                className={`absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full border-2 border-white dark:border-dark-2 ${
-                  chat.active === true
-                    ? "bg-green"
-                    : chat.active === false
-                      ? `bg-red-light`
-                      : "bg-orange-light"
-                }`}
+                className={`absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full border-2 border-white dark:border-dark-2 ${chat.active === true
+                  ? "bg-green"
+                  : chat.active === false
+                    ? `bg-red-light`
+                    : "bg-orange-light"
+                  }`}
               ></span>
             </div>
 

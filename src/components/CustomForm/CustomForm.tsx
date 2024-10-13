@@ -10,10 +10,11 @@ const { Option } = Select;
 interface FormProps {
     data: any;
     name: string;
+    isLoading?:boolean;
     onFinish: (value: any) => void;
 }
 
-const CustomForm: React.FC<FormProps> = ({ data, name, onFinish }: FormProps) => {
+const CustomForm: React.FC<FormProps> = ({ data, name, onFinish,isLoading=false }: FormProps) => {
     console.log('Line 10:', data);
     const [form] = Form.useForm();
 
@@ -49,8 +50,8 @@ const CustomForm: React.FC<FormProps> = ({ data, name, onFinish }: FormProps) =>
                         </Select> </Form.Item>
             case 'button':
                 return (
-                    <Form.Item className={fieldsValues.className} key={fieldsValues.name}>
-                        <Button type={fieldsValues.buttonType} htmlType={fieldsValues.htmlType}>
+                    <Form.Item  className={fieldsValues.className} key={fieldsValues.name}>
+                        <Button loading={isLoading} type={fieldsValues.buttonType} htmlType={fieldsValues.htmlType}>
                             {fieldsValues.text}
                         </Button>
                     </Form.Item>

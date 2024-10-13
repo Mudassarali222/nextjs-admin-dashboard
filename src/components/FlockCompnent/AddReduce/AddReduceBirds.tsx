@@ -1,10 +1,11 @@
 "use client"
 
+import { addBirdData, getBirdsData } from "@/axios/services/bird";
 import CustomForm from "@/components/CustomForm/CustomForm";
 import { addreduceFormItems } from "@/utils/constant";
 import { DeleteOutlined, EditOutlined, EllipsisOutlined } from "@ant-design/icons";
-import { Button, Card, DatePicker, Dropdown, Form, Input, MenuProps, Modal, Select, Space, Table, Tabs, TabsProps, Tag } from "antd";
-import { useState } from "react";
+import { Button, Card, DatePicker, Dropdown, Form, Input, MenuProps, message, Modal, Select, Space, Spin, Table, Tabs, TabsProps, Tag } from "antd";
+import { useEffect, useState } from "react";
 
 const { TextArea } = Input;
 const { Option } = Select;
@@ -14,17 +15,46 @@ const AddReduceBirds = ({ flockId }: any) => {
     console.log('Line 12:', flockId);
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [modalTitle, setModalTitle] = useState<string>('Add Birds');
-    const [type, setType] = useState<string>('add');
+    const [type, setType] = useState<string>('Addition');
+    const [birdData, setBirdData] = useState<any>();
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+
+    async function getAllBird() {
+        await getBirdsData(flockId).then((res: any) => {
+            setIsLoading(false)
+            setBirdData(res?.data)
+        }).catch((err:any)=>{
+            setIsLoading(false)
+        });
+    }
+
+    async function addBird(payload: any) {
+         await addBirdData(payload).then((res) => {
+            if (res?.status === 201) {
+              type==='Addition' ?  message.success('Bird added successfully.') : message.success('Bird reduce successfully.')
+                setIsModalOpen(false)
+                setIsLoading(false)
+                const { data } = res
+                setBirdData([data, ...birdData])
+            }
+        }).catch(()=>{
+            message.error('Data not save successfully.')
+        });
+    }
 
     const columns = [
         {
             title: 'Acqusition',
-            dataIndex: 'acqusition',
+            // dataIndex: 'acqusition',
             key: 'Acqusition',
+            render: (record: any) => {
+                return record?.type === 'Addition' ? 'Purchased' : 'Bred'
+
+            }
         },
         {
             title: 'Birds Count',
-            dataIndex: 'active_bird_count',
+            dataIndex: 'bird_count',
             key: 'Birds Count',
         },
         {
@@ -37,12 +67,13 @@ const AddReduceBirds = ({ flockId }: any) => {
         },
         {
             title: 'Created Date',
-            dataIndex: 'date',
+            dataIndex: 'created_date',
             key: 'Created Date',
+
         },
         {
             title: 'Description',
-            dataIndex: 'date',
+            dataIndex: 'notes',
             key: 'Description',
         },
         {
@@ -65,114 +96,22 @@ const AddReduceBirds = ({ flockId }: any) => {
 
     ];
 
-    const dataSource = [
-        {
-            key: '1',
-            f_Name: 'Flock A',
-            type: 'Addition',
-            active_bird_count: 150,
-            purpose: 'Egg Production',
-            acqusition: 'Purchased',
-            date: '2024-08-17',
-        },
-        {
-            key: '2',
-            f_Name: 'Flock B',
-            type: 'Reduction',
-            active_bird_count: 200,
-            purpose: 'Meat Production',
-            acqusition: 'Bred',
-            date: '2024-08-10',
-        },
-        {
-            key: '3',
-            f_Name: 'Flock C',
-            type: 'Reduction',
-            active_bird_count: 80,
-            purpose: 'Breeding',
-            acqusition: 'Purchased',
-            date: '2024-08-05',
-        },
-        {
-            key: '4',
-            f_Name: 'Flock D',
-            type: 'Addition',
-            active_bird_count: 300,
-            purpose: 'Egg Production',
-            acqusition: 'Bred',
-            date: '2024-07-28',
-        },
-        {
-            key: '5',
-            f_Name: 'Flock E',
-            type: 'Reduction',
-            active_bird_count: 120,
-            purpose: 'Feather Production',
-            acqusition: 'Purchased',
-            date: '2024-07-20',
-        },
-        {
-            key: '6',
-            f_Name: 'Flock F',
-            type: 'Addition',
-            active_bird_count: 250,
-            purpose: 'Meat Production',
-            acqusition: 'Bred',
-            date: '2024-07-15',
-        },
-        {
-            key: '7',
-            f_Name: 'Flock G',
-            type: 'Addition',
-            active_bird_count: 180,
-            purpose: 'Egg Production',
-            acqusition: 'Purchased',
-            date: '2024-07-10',
-        },
-        {
-            key: '8',
-            f_Name: 'Flock H',
-            type: 'Addition',
-            active_bird_count: 90,
-            purpose: 'Breeding',
-            acqusition: 'Bred',
-            date: '2024-07-05',
-        },
-        {
-            key: '9',
-            f_Name: 'Flock I',
-            type: 'Reduction',
-            active_bird_count: 220,
-            purpose: 'Meat Production',
-            acqusition: 'Purchased',
-            date: '2024-06-30',
-        },
-        {
-            key: '10',
-            f_Name: 'Flock J',
-            type: 'Reduction',
-            active_bird_count: 100,
-            purpose: 'Feather Production',
-            acqusition: 'Bred',
-            date: '2024-06-25',
-        },
-    ];
 
     const items: TabsProps['items'] = [
         {
             key: '1',
             label: 'All',
-            children: <Table dataSource={dataSource} columns={columns} />,
+            children: <Table dataSource={birdData} columns={columns} />,
         },
         {
             key: '2',
             label: 'Addition',
-            children: <Table dataSource={dataSource.filter((ele: any) => ele?.type === 'Addition')} columns={columns} />,
+            children: <Table dataSource={birdData?.filter((ele: any) => ele?.type === 'Addition')} columns={columns} />,
         },
         {
             key: '3',
             label: 'Reduction',
-            children: <Table dataSource={dataSource.filter((ele: any) => ele?.type !== 'Addition')} columns={columns} />,
+            children: <Table dataSource={birdData?.filter((ele: any) => ele?.type !== 'Addition')} columns={columns} />,
         },
     ];
     const onChange = (key: string) => {
@@ -180,17 +119,32 @@ const AddReduceBirds = ({ flockId }: any) => {
     };
 
     const onFinish = (values: any) => {
-        console.log('Form values:', values);
+        setIsLoading(true)
+        const body = {
+            ...values,
+            type,
+            flock_id: flockId
+        }
+
+        addBird(body)
     };
+
+    useEffect(() => {
+        if (!birdData) {
+            setIsLoading(true)
+            getAllBird();
+        }
+
+    }, []);
 
     return <>
         <Card title={'Chicken One'} extra={<>
             <Space>
-                <Button type="primary" onClick={() => { setIsModalOpen(true); setType('add'); setModalTitle('Add Birds') }}>Add Birds</Button>
-                <Button type="primary" onClick={() => { setIsModalOpen(true); setType('reduction'); setModalTitle('Reduce Birds') }}>Reduce Birds</Button>
+                <Button type="primary" onClick={() => { setIsModalOpen(true); setType('Addition'); setModalTitle('Add Birds') }}>Add Birds</Button>
+                <Button type="primary" onClick={() => { setIsModalOpen(true); setType('Reduction'); setModalTitle('Reduce Birds') }}>Reduce Birds</Button>
             </Space>
         </>}>
-            <Tabs defaultActiveKey="1" items={items} onChange={onChange} />
+           {!isLoading ? <Tabs defaultActiveKey="1" items={items} onChange={onChange} />: <div className="flex items-center justify-center"><Spin/></div>}
         </Card>
         {isModalOpen && <Modal
             open={isModalOpen}
@@ -203,7 +157,7 @@ const AddReduceBirds = ({ flockId }: any) => {
         >
 
             <div>
-                <CustomForm name="addReduce" onFinish={onFinish} data={addreduceFormItems(type)} />
+                <CustomForm isLoading={isLoading} name="addReduce" onFinish={onFinish} data={addreduceFormItems(type)} />
             </div>
         </Modal>}
     </>

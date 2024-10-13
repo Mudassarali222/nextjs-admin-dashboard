@@ -1,49 +1,74 @@
 "use client"
+import { addFeedsData, getFeedsData } from "@/axios/services/feed";
 import CustomForm from "@/components/CustomForm/CustomForm";
 import { feedingFormItems } from "@/utils/constant";
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
-import { Button, Card, DatePicker, Form, Input, InputNumber, Modal, Select, Space, Table, Tabs, TabsProps, Tag } from "antd";
-import { useParams } from "next/navigation";
-import { useState } from "react";
+import { Button, Card, message, Modal, Space, Table, } from "antd";
+import { useEffect, useState } from "react";
 
 
 
 const Feeding = ({ flockId }: any) => {
     console.log('Line 10:', flockId);
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-    const [modalTitle, setModalTitle] = useState<string>('New Feeding');
+    const [FeedData, setFeedData] = useState<any>();
+    const [isLoading, setIsLoading] = useState<boolean>(false);
 
 
-    const [form] = Form.useForm();
+    async function getFeed() {
+        await getFeedsData(flockId).then((res: any) => {
+            setIsLoading(false)
+            setFeedData(res?.data)
+        }).catch((err: any) => {
+            setIsLoading(false)
+        });
+    }
 
-
-    const { Option } = Select;
+    async function addFeed(payload: any) {
+        await addFeedsData(payload).then((res) => {
+            if (res?.status === 201) {
+                message.success('Feed save successfully.')
+                setIsModalOpen(false)
+                setIsLoading(false)
+                const { data } = res
+                setFeedData([data, ...FeedData])
+            }
+        }).catch(() => {
+            message.error('Feed not save successfully.')
+        });
+    }
 
     const handleSubmit = (values: any) => {
-        console.log('Form values:', values);
+        setIsLoading(true)
+        const body = {
+            ...values,
+            flock_id: flockId
+        }
+
+        addFeed(body)
     };
 
 
     const columns = [
         {
             title: 'Feed Type',
-            dataIndex: 'feed_type',
+            dataIndex: 'feed_name',
             key: 'Feed Type',
         },
         {
             title: 'Feed Quantity(kg)',
-            dataIndex: 'feed_quantity',
+            dataIndex: 'quantity',
             key: 'Feed Quantity(kg)',
         },
 
         {
             title: 'Created Date',
-            dataIndex: 'date',
+            dataIndex: 'collection_date',
             key: 'Created Date',
         },
         {
             title: 'Description',
-            dataIndex: 'des',
+            dataIndex: 'notes',
             key: 'Description',
         },
         {
@@ -65,78 +90,16 @@ const Feeding = ({ flockId }: any) => {
 
     ];
 
-    const dataSource = [
-        {
-            key: '1',
-            feed_type: 'Oats',
-            feed_quantity: 5,
-            des: '',
-            date: '2024-08-17',
-        },
-        {
-            key: '2',
-            feed_type: 'Corn',
-            feed_quantity: 10,
-            des: '',
-            date: '2024-08-10',
-        },
-        {
-            key: '3',
-            feed_type: 'Chick and Duck Mash',
-            feed_quantity: 2,
-            des: '',
-            date: '2024-08-05',
-        },
-        {
-            key: '4',
-            feed_type: 'Bajra/Millat',
-            feed_quantity: 25,
-            des: '',
-            date: '2024-07-28',
-        },
-        {
-            key: '5',
-            feed_type: 'Oats',
-            feed_quantity: 14,
-            des: '',
-            date: '2024-07-20',
-        },
-        {
-            key: '6',
-            feed_type: 'Barley',
-            feed_quantity: 50,
-            des: '',
-            date: '2024-07-15',
-        },
-        {
-            key: '7',
-            feed_type: 'Mix Seeds',
-            feed_quantity: 500,
-            des: '',
-            date: '2024-07-10',
-        },
-        {
-            key: '8',
-            feed_type: 'Oats',
-            feed_quantity: 35,
-            des: '',
-            date: '2024-07-05',
-        },
-        {
-            key: '9',
-            feed_type: 'Chicken Scratch',
-            feed_quantity: 33,
-            des: '',
-            date: '2024-06-30',
-        },
-        {
-            key: '10',
-            feed_type: 'Layers Mash',
-            feed_quantity: 22,
-            des: '',
-            date: '2024-06-25',
-        },
-    ];
+
+
+    useEffect(() => {
+        if (!FeedData) {
+            setIsLoading(true)
+            getFeed();
+        }
+
+
+    }, []);
 
     return <>
         <Card title={'Chicken One'} extra={<>
@@ -146,17 +109,17 @@ const Feeding = ({ flockId }: any) => {
                 }}>New Feeding</Button>
             </Space>
         </>}>
-            <Table dataSource={dataSource} columns={columns} />
+            <Table dataSource={FeedData} loading={isLoading} columns={columns} />
             {isModalOpen && <Modal
                 open={isModalOpen}
-                title={modalTitle}
+                title={'New Feeding'}
                 okButtonProps={{ hidden: true }}
                 cancelButtonProps={{ hidden: true }}
                 onCancel={() => {
                     setIsModalOpen(false)
                 }}
             >
-                <CustomForm name="feeding" data={feedingFormItems} onFinish={handleSubmit} />
+                <CustomForm name="feeding" isLoading={isLoading} data={feedingFormItems} onFinish={handleSubmit} />
             </Modal>}
         </Card>
     </>

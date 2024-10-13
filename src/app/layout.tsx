@@ -8,10 +8,12 @@ import 'antd/dist/reset.css'; // Import Ant Design styles by using reset.css
 import { ConfigProvider } from 'antd'; // Import ConfigProvider for custom theming
 
 import React, { useEffect, useState } from "react";
-import Loader from "@/components/common/Loader";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { getCookie } from "cookies-next";
 import DefaultLayout from "@/components/Layouts/DefaultLaout";
+
+import { ProgressLoader } from 'nextjs-progressloader';
+import LoginLayout from "@/components/Layouts/LoginLayout";
 
 export default function RootLayout({
   children,
@@ -29,23 +31,28 @@ export default function RootLayout({
 
   const router = useRouter();
 
-  const isLogin = getCookie("logIn");
+  const pathname = usePathname(); // Get the current path
 
-  console.log("line 30", isLogin);
+  useEffect(() => {
+    const isLogin = getCookie("logIn");
+    // If the user is not logged in and not on the login page, redirect to login
+    if (isLogin ==='undefined' && pathname !== "/auth/signin") {
+      router.push(`/auth/signin`);
+    }
+  }, [router, pathname]);
 
-  if (isLogin === undefined || isLogin === 'undefined') {
-    router.push(`/auth/signin`);
-  }
+  // Choose layout based on current route
+  const isLoginPage = pathname === "/auth/signin";
+  const LayoutComponent = isLoginPage ? LoginLayout : DefaultLayout;
 
   return (
     <html lang="en">
-      <body suppressHydrationWarning={true}>
-        {/* <Loader /> */}
-        {/* {isLogin && isLogin!== 'undefined' ? <DefaultLayout>{children}</DefaultLayout>: children} */}
-        <ConfigProvider>
-        <DefaultLayout>{children}</DefaultLayout>
-        </ConfigProvider>
-      </body>
-    </html>
+    <body suppressHydrationWarning={true}>
+      <ProgressLoader showSpinner={false} />
+      <ConfigProvider>
+        <LayoutComponent>{children}</LayoutComponent>
+      </ConfigProvider>
+    </body>
+  </html>
   );
 }

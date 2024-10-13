@@ -1,11 +1,13 @@
 "use client"
 
+import { addTransationData, getTransationData, getTransationDelete } from "@/axios/services/transaction";
 import CustomForm from "@/components/CustomForm/CustomForm";
+import DeleteModal from "@/components/Shared/DeleteModal";
 import { incomeExpenseFormItems } from "@/utils/constant";
 import { DeleteOutlined, EditOutlined, EllipsisOutlined } from "@ant-design/icons";
-import { Button, Card, DatePicker, Dropdown, Form, Input, InputNumber, MenuProps, Modal, Select, Space, Table, Tabs, TabsProps, Tag } from "antd";
+import { Button, Card, DatePicker, Dropdown, Form, Input, InputNumber, MenuProps, message, Modal, Select, Space, Table, Tabs, TabsProps, Tag } from "antd";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 const { Option } = Select;
 
 const IncomeExpense = ({ flockId }: any) => {
@@ -13,10 +15,61 @@ const IncomeExpense = ({ flockId }: any) => {
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [modalTitle, setModalTitle] = useState<string>('Add Birds');
     const [type, setType] = useState<string>('');
-    const [form] = Form.useForm();
+    const [transactionData, setTransactionData] = useState<any>();
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false);
+    const [editDeleteId, setEditDeleteId] = useState<any>();
+
+
+    async function getTransations() {
+        await getTransationData(flockId).then((res: any) => {
+            setIsLoading(false)
+            setTransactionData(res?.data)
+        }).catch((err: any) => {
+            setIsLoading(false)
+        });
+    }
+    
+    async function deleteitem() {
+        await getTransationDelete(editDeleteId).then((res: any) => {
+            message.success(res?.data?.message)
+            setIsLoading(false)
+            setIsDeleteModalOpen(false)
+            console.log('Line 36:', res);
+            setTransactionData((previous:any)=>{
+                return previous?.filter((ele:any)=>ele?._id!==editDeleteId)
+            })
+        }).catch((err: any) => {
+            setIsLoading(false)
+            setIsDeleteModalOpen(false)
+            message.error('Transcation not deleted.')
+        });
+    }
+
+    async function addTransation(payload: any) {
+        await addTransationData(payload).then((res) => {
+            if (res?.status === 201) {
+                message.success(`${type} save successfully.`)
+                setIsModalOpen(false)
+                setIsLoading(false)
+                const { data } = res
+                setTransactionData([data, ...transactionData])
+            }
+        }).catch(() => {
+            message.error(`${type} not save successfully.`)
+        });
+    }
 
     const onFinish = (values: any) => {
         console.log('Form values:', values);
+        setIsLoading(true)
+        const body = {
+            ...values,
+            type,
+            flock_id: flockId
+        }
+
+        addTransation(body)
     };
 
     const columns = [
@@ -27,7 +80,7 @@ const IncomeExpense = ({ flockId }: any) => {
         },
         {
             title: 'Birds Count',
-            dataIndex: 'bird_count',
+            dataIndex: 'quantity',
             key: 'Birds Count',
         },
         {
@@ -35,12 +88,12 @@ const IncomeExpense = ({ flockId }: any) => {
             dataIndex: 'type',
             key: 'Type',
             render: (record: any) => {
-                return record === 'In' ? <Tag color="success">Income</Tag> : <Tag color="error">Expense</Tag>;
+                return record === 'Income' ? <Tag color="success">Income</Tag> : <Tag color="error">Expense</Tag>;
             }
         },
         {
             title: 'Ammount',
-            dataIndex: 'ammount',
+            dataIndex: 'sale_ammount',
             key: 'Ammount',
         },
         {
@@ -50,12 +103,12 @@ const IncomeExpense = ({ flockId }: any) => {
         },
         {
             title: 'Created Date',
-            dataIndex: 'date',
+            dataIndex: 'created_date',
             key: 'Created Date',
         },
         {
             title: 'Description',
-            dataIndex: 'description',
+            dataIndex: 'notes',
             key: 'Description',
         },
         {
@@ -70,7 +123,10 @@ const IncomeExpense = ({ flockId }: any) => {
                         }}
                             className="text-blue-500"
                         />
-                        <DeleteOutlined className="text-red-500" />
+                        <DeleteOutlined className="text-red-500" onClick={() => {
+                            setEditDeleteId(record?._id)
+                            setIsDeleteModalOpen(true)
+                        }} />
                     </Space>
                 </>
             }
@@ -207,22 +263,29 @@ const IncomeExpense = ({ flockId }: any) => {
         {
             key: '1',
             label: 'All',
-            children: <Table dataSource={dataSource} columns={columns} />,
+            children: <Table dataSource={transactionData} columns={columns} />,
         },
         {
             key: '2',
             label: 'Income',
-            children: <Table dataSource={dataSource.filter((ele: any) => ele?.type === 'In')} columns={columns} />,
+            children: <Table dataSource={transactionData?.filter((ele: any) => ele?.type === 'Income')} columns={columns} />,
         },
         {
             key: '3',
             label: 'Expense',
-            children: <Table dataSource={dataSource.filter((ele: any) => ele?.type !== 'In')} columns={columns} />,
+            children: <Table dataSource={transactionData?.filter((ele: any) => ele?.type !== 'Income')} columns={columns} />,
         },
     ];
     const onChange = (key: string) => {
         console.log(key);
     };
+
+    useEffect(() => {
+        if (!transactionData) {
+            setIsLoading(true)
+            getTransations()
+        }
+    }, []);
 
     return <>
         <Card title={'Chicken One'} extra={<>
@@ -230,12 +293,12 @@ const IncomeExpense = ({ flockId }: any) => {
                 <Button type="primary" onClick={() => {
                     setIsModalOpen(true)
                     setModalTitle('New Income')
-                    setType('income')
+                    setType('Income')
                 }}>Income</Button>
                 <Button type="primary" onClick={() => {
                     setIsModalOpen(true)
                     setModalTitle('New Expense')
-                    setType('expense')
+                    setType('Expense')
                 }}>Expense</Button>
             </Space>
         </>}>
@@ -249,8 +312,20 @@ const IncomeExpense = ({ flockId }: any) => {
                     setIsModalOpen(false)
                 }}
             >
-                <CustomForm name="incomeExpense" data={incomeExpenseFormItems(type)} onFinish={onFinish} />
+                <CustomForm name="incomeExpense" isLoading={isLoading} data={incomeExpenseFormItems(type)} onFinish={onFinish} />
             </Modal>}
+            {
+                isDeleteModalOpen && <DeleteModal isOpen={isDeleteModalOpen}
+                    onClose={() => { setIsDeleteModalOpen(false) }}
+                    onDone={() => {
+                        setIsLoading(true)
+                        deleteitem()
+                    }}
+                    isLoading={
+                        isLoading
+                    }
+                />
+            }
         </Card>
     </>
 }

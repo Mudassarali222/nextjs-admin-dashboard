@@ -1,19 +1,42 @@
 "use client"
+import { addEggsData, getEggsData } from "@/axios/services/Egg";
 import CustomForm from "@/components/CustomForm/CustomForm";
 import { eggcollectionFormItems } from "@/utils/constant";
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
-import { Button, Card, DatePicker, Form, Input, InputNumber, Modal, Select, Space, Table, Tabs, TabsProps, Tag } from "antd";
-import { useParams } from "next/navigation";
-import { useState } from "react";
-
-const { TextArea } = Input;
-const { Option } = Select;
+import { Button, Card, message, Modal, Space, Spin, Table, Tabs, TabsProps, Tag } from "antd";
+import { useEffect, useState } from "react";
 
 const EggCollection = ({ flockId }: any) => {
     console.log('Line 11:', flockId);
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-    const [modalTitle, setModalTitle] = useState<string>('Add Birds');
-    const [type, setType] = useState<string>('collect');
+    const [modalTitle, setModalTitle] = useState<string>('Add Eggs');
+    const [type, setType] = useState<string>('Collect');
+    const [eggsData, setEggsData] = useState<any>();
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+
+
+    async function getEggs() {
+       await getEggsData(flockId).then((res: any) => {
+            setIsLoading(false)
+            setEggsData(res?.data)
+        }).catch((err: any) => {
+            setIsLoading(false)
+        });
+    }
+
+    async function addEggs(payload: any) {
+         await addEggsData(payload).then((res) => {
+            if (res?.status === 201) {
+                type === 'Collect' ? message.success('Eggs collection save successfully.') : message.success('Eggs Reduction save successfully.')
+                setIsModalOpen(false)
+                setIsLoading(false)
+                const { data } = res
+                setEggsData([data, ...eggsData])
+            }
+        }).catch(() => {
+            message.error('Data not save successfully.')
+        });
+    }
 
     const columns = [
         {
@@ -23,7 +46,7 @@ const EggCollection = ({ flockId }: any) => {
         },
         {
             title: 'Bad Eggs',
-            dataIndex: 'bad_eggs',
+            dataIndex: 'spoil_eggs',
             key: 'Birds Count',
         },
         {
@@ -31,7 +54,7 @@ const EggCollection = ({ flockId }: any) => {
             dataIndex: 'type',
             key: 'Type',
             render: (record: any) => {
-                return record === 'Collected' ? <Tag color="success">{record}</Tag> : <Tag color="error">{record}</Tag>;
+                return record === 'Collect' ? <Tag color="success">{record}</Tag> : <Tag color="error">{record}</Tag>;
             }
         },
         {
@@ -46,12 +69,12 @@ const EggCollection = ({ flockId }: any) => {
         },
         {
             title: 'Created Date',
-            dataIndex: 'date',
+            dataIndex: 'collection_date',
             key: 'Created Date',
         },
         {
             title: 'Description',
-            dataIndex: 'des',
+            dataIndex: 'notes',
             key: 'Description',
         },
         {
@@ -74,120 +97,120 @@ const EggCollection = ({ flockId }: any) => {
 
     ];
 
-    const dataSource = [
-        {
-            key: '1',
-            type: 'Collected',
-            good_eggs: 5,
-            bad_eggs: 5,
-            total_eggs: 10,
-            des: '',
-            date: '2024-08-17',
-        },
-        {
-            key: '2',
-            type: 'Reduced',
-            good_eggs: 5,
-            bad_eggs: 5,
-            total_eggs: 10,
-            des: '',
-            reduction_reason: "Sold",
-            date: '2024-08-10',
-        },
-        {
-            key: '3',
-            type: 'Collected',
-            good_eggs: 5,
-            bad_eggs: 10,
-            total_eggs: 15,
-            des: '',
-            date: '2024-08-05',
-        },
-        {
-            key: '4',
-            type: 'Reduced',
-            good_eggs: 15,
-            bad_eggs: 10,
-            total_eggs: 25,
-            des: '',
-            reduction_reason: "Lose/Stolen",
-            date: '2024-07-28',
-        },
-        {
-            key: '5',
-            type: 'Reduced',
-            good_eggs: 2,
-            bad_eggs: 1,
-            total_eggs: 3,
-            des: '',
-            reduction_reason: "Other",
-            date: '2024-07-20',
-        },
-        {
-            key: '6',
-            type: 'Collected',
-            good_eggs: 25,
-            bad_eggs: 0,
-            total_eggs: 25,
-            des: '',
-            date: '2024-07-15',
-        },
-        {
-            key: '7',
-            type: 'Reduced',
-            good_eggs: 2,
-            bad_eggs: 1,
-            total_eggs: 3,
-            des: '',
-            reduction_reason: "Other",
-            date: '2024-07-10',
-        },
-        {
-            key: '8',
-            type: 'Reduced',
-            good_eggs: 50,
-            bad_eggs: 10,
-            total_eggs: 60,
-            des: '',
-            reduction_reason: "Lose/Stolen",
-            date: '2024-07-05',
-        },
-        {
-            key: '9',
-            type: 'Collected',
-            good_eggs: 25,
-            bad_eggs: 1,
-            total_eggs: 26,
-            des: '',
-            date: '2024-06-30',
-        },
-        {
-            key: '10',
-            type: 'Collected',
-            good_eggs: 30,
-            bad_eggs: 5,
-            total_eggs: 35,
-            des: '',
-            date: '2024-06-25',
-        },
-    ];
+    // const dataSource = [
+    //     {
+    //         key: '1',
+    //         type: 'Collected',
+    //         good_eggs: 5,
+    //         bad_eggs: 5,
+    //         total_eggs: 10,
+    //         des: '',
+    //         date: '2024-08-17',
+    //     },
+    //     {
+    //         key: '2',
+    //         type: 'Reduced',
+    //         good_eggs: 5,
+    //         bad_eggs: 5,
+    //         total_eggs: 10,
+    //         des: '',
+    //         reduction_reason: "Sold",
+    //         date: '2024-08-10',
+    //     },
+    //     {
+    //         key: '3',
+    //         type: 'Collected',
+    //         good_eggs: 5,
+    //         bad_eggs: 10,
+    //         total_eggs: 15,
+    //         des: '',
+    //         date: '2024-08-05',
+    //     },
+    //     {
+    //         key: '4',
+    //         type: 'Reduced',
+    //         good_eggs: 15,
+    //         bad_eggs: 10,
+    //         total_eggs: 25,
+    //         des: '',
+    //         reduction_reason: "Lose/Stolen",
+    //         date: '2024-07-28',
+    //     },
+    //     {
+    //         key: '5',
+    //         type: 'Reduced',
+    //         good_eggs: 2,
+    //         bad_eggs: 1,
+    //         total_eggs: 3,
+    //         des: '',
+    //         reduction_reason: "Other",
+    //         date: '2024-07-20',
+    //     },
+    //     {
+    //         key: '6',
+    //         type: 'Collected',
+    //         good_eggs: 25,
+    //         bad_eggs: 0,
+    //         total_eggs: 25,
+    //         des: '',
+    //         date: '2024-07-15',
+    //     },
+    //     {
+    //         key: '7',
+    //         type: 'Reduced',
+    //         good_eggs: 2,
+    //         bad_eggs: 1,
+    //         total_eggs: 3,
+    //         des: '',
+    //         reduction_reason: "Other",
+    //         date: '2024-07-10',
+    //     },
+    //     {
+    //         key: '8',
+    //         type: 'Reduced',
+    //         good_eggs: 50,
+    //         bad_eggs: 10,
+    //         total_eggs: 60,
+    //         des: '',
+    //         reduction_reason: "Lose/Stolen",
+    //         date: '2024-07-05',
+    //     },
+    //     {
+    //         key: '9',
+    //         type: 'Collected',
+    //         good_eggs: 25,
+    //         bad_eggs: 1,
+    //         total_eggs: 26,
+    //         des: '',
+    //         date: '2024-06-30',
+    //     },
+    //     {
+    //         key: '10',
+    //         type: 'Collected',
+    //         good_eggs: 30,
+    //         bad_eggs: 5,
+    //         total_eggs: 35,
+    //         des: '',
+    //         date: '2024-06-25',
+    //     },
+    // ];
 
 
     const items: TabsProps['items'] = [
         {
             key: '1',
             label: 'All',
-            children: <Table dataSource={dataSource} columns={columns} />,
+            children: <Table dataSource={eggsData || []} columns={columns} />,
         },
         {
             key: '2',
             label: 'Collection',
-            children: <Table dataSource={dataSource.filter((ele: any) => ele?.type !== 'Reduced')} columns={columns.filter((ele: any) => ele.dataIndex !== 'reduction_reason')} />,
+            children: <Table dataSource={eggsData?.filter((ele: any) => ele?.type !== 'Reduced')} columns={columns.filter((ele: any) => ele.dataIndex !== 'reduction_reason')} />,
         },
         {
             key: '3',
             label: 'Reduction',
-            children: <Table dataSource={dataSource.filter((ele: any) => ele?.type === 'Reduced')} columns={columns} />,
+            children: <Table dataSource={eggsData?.filter((ele: any) => ele?.type === 'Reduced')} columns={columns} />,
         },
     ];
     const onChange = (key: string) => {
@@ -195,18 +218,34 @@ const EggCollection = ({ flockId }: any) => {
     };
 
     const onFinish = (values: any) => {
-        console.log('Form Values:', values);
+        setIsLoading(true)
+        const body = {
+            ...values,
+            type,
+            flock_id: flockId
+        }
+
+        addEggs(body)
     };
+
+    useEffect(() => {
+        if (!eggsData) {
+            setIsLoading(true)
+            getEggs();
+        }
+
+
+    }, []);
 
     return <>
         <Card title={'Chicken One'} extra={<>
             <Space>
-                <Button type="primary" onClick={() => { setIsModalOpen(true); setType('collect'); setModalTitle('Add Eggs') }}>Collect</Button>
-                <Button type="primary" onClick={() => { setIsModalOpen(true); setType('reduction'); setModalTitle('Reduce Eggs') }}>Reduce</Button>
+                <Button type="primary" onClick={() => { setIsModalOpen(true); setType('Collect'); setModalTitle('Add Eggs') }}>Collect</Button>
+                <Button type="primary" onClick={() => { setIsModalOpen(true); setType('Reduced'); setModalTitle('Reduce Eggs') }}>Reduce</Button>
             </Space>
         </>}>
-            <Tabs defaultActiveKey="1" items={items} onChange={onChange} />
-           {isModalOpen && <Modal
+            {!isLoading ? <Tabs defaultActiveKey="1" items={items} onChange={onChange} /> : <div className="flex items-center justify-center"><Spin /></div>}
+            {isModalOpen && <Modal
                 open={isModalOpen}
                 title={modalTitle}
                 okButtonProps={{ hidden: true }}
@@ -215,7 +254,7 @@ const EggCollection = ({ flockId }: any) => {
                     setIsModalOpen(false)
                 }}
             >
-                <CustomForm name="eggcollection" data={eggcollectionFormItems(type)} onFinish={onFinish} />
+                <CustomForm name="eggcollection" isLoading={isLoading} data={eggcollectionFormItems(type)} onFinish={onFinish} />
             </Modal>}
         </Card>
     </>
